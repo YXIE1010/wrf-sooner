@@ -15,9 +15,11 @@ keep a copy on project storage, or simply re-run the script (it skips work if da
 The case example uses **NCEP FNL 1° analyses** (NSF NCAR GDEX dataset d083002, formerly RDA
 ds083.2), 6-hourly GRIB2, ~17 MB/file:
 ```bash
-bash scripts/data/get_fnl.sh 2013-05-20_12 2013-05-21_00
+bash scripts/data/get_case_data.sh cases/2013-05-20_moore
+bash scripts/data/get_case_data.sh cases/2023-01-09_california_ar
 ```
-Files land in `$MET_DIR/fnl/`. If the HTTPS path changes, find the current pattern under
+This reads `START`/`END` from each `case.conf` and saves the files in `$MET_DIR/fnl/<case>/`
+(one folder per case, so ungrib only sees that case's files). If the HTTPS path changes, find the current pattern under
 "Web Download (HTTPS)" on the dataset's data-access page and set `FNL_BASE_URL`.
 
 **Citation:** National Centers for Environmental Prediction/National Weather Service/NOAA/U.S.
