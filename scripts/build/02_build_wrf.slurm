@@ -18,7 +18,12 @@
 #SBATCH --error=logs/build_wrf_%j.out
 
 set -euo pipefail
-source "${SLURM_SUBMIT_DIR}/env/sooner_wrf.env.sh"
+cd "$SLURM_SUBMIT_DIR"
+# Step 0: pick + test a module set automatically the first time
+if [ ! -f env/sooner_modules.sh ]; then
+    bash scripts/build/00_setup_modules.sh
+fi
+source env/sooner_wrf.env.sh
 wrf_load_modules
 
 # --- 1. WRF wants netCDF-C and netCDF-Fortran under ONE prefix. EasyBuild

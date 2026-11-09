@@ -8,34 +8,30 @@
 # Sourced by every build/run script in this repo, both on the login node
 # (inside the `el9` container) and inside SLURM jobs (--container=el9hw).
 #
-# !! Module names below follow OSCER's EasyBuild naming
-# !! (<name>/<version>-<toolchain>). Versions change when OSCER updates the
-# !! software stack: run scripts/build/00_check_modules.sh first and edit the
-# !! MOD_* lines to match what `module avail` shows on Sooner today.
+# Module versions are NOT hard-coded: scripts/build/00_setup_modules.sh picks
+# and tests them and writes env/sooner_modules.sh (sourced below).
 # =============================================================================
 
 # ---- Versions to build -------------------------------------------------------
 export WRF_VERSION="${WRF_VERSION:-4.7.1}"
 export WPS_VERSION="${WPS_VERSION:-4.7.0}"   # check github.com/wrf-model/WPS/releases
 
-# ---- Modules (one consistent GCC + OpenMPI toolchain) ------------------------
-# All of these must come from the SAME toolchain (e.g. foss-2023a = GCC 12.3 +
-# OpenMPI 4.1.5). Mixing toolchains is the #1 cause of link errors.
-MOD_COMPILER="${MOD_COMPILER:-GCC/12.3.0}"
-MOD_MPI="${MOD_MPI:-OpenMPI/4.1.5-GCC-12.3.0}"
-MOD_NETCDF_C="${MOD_NETCDF_C:-netCDF/4.9.2-gompi-2023a}"
-MOD_NETCDF_F="${MOD_NETCDF_F:-netCDF-Fortran/4.6.1-gompi-2023a}"
-MOD_JASPER="${MOD_JASPER:-JasPer/4.0.0-GCCcore-12.3.0}"
-MOD_PNG="${MOD_PNG:-libpng/1.6.39-GCCcore-12.3.0}"
-MOD_ZLIB="${MOD_ZLIB:-zlib/1.2.13-GCCcore-12.3.0}"
-# Optional, only needed on the login node for the plotting step:
-MOD_PYTHON="${MOD_PYTHON:-}"
+# ---- Modules ---------------------------------------------------------------
+# Chosen and tested automatically by scripts/build/00_setup_modules.sh, which
+# writes env/sooner_modules.sh (the WRF build job runs it if the file is missing).
+_ENV_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+[ -f "$_ENV_DIR/sooner_modules.sh" ] && source "$_ENV_DIR/sooner_modules.sh"
 
 wrf_load_modules() {
+    if [ -z "${MOD_NETCDF_F:-}" ]; then
+        echo "ERROR: no module set yet — run scripts/build/00_setup_modules.sh" >&2
+        return 1
+    fi
     module purge
-    module load "$MOD_COMPILER" "$MOD_MPI" "$MOD_NETCDF_C" "$MOD_NETCDF_F" \
-                "$MOD_ZLIB" "$MOD_PNG" "$MOD_JASPER" || {
-        echo "ERROR: a module failed to load. Run scripts/build/00_check_modules.sh" >&2
+    # netCDF-Fortran pulls in GCC, OpenMPI, netCDF-C, HDF5 as dependencies
+    module load "$MOD_NETCDF_F" "$MOD_JASPER" "$MOD_PNG" || {
+        echo "ERROR: a module failed to load. Delete env/sooner_modules.sh and re-run" \
+             "scripts/build/00_setup_modules.sh" >&2
         return 1
     }
     module list 2>&1

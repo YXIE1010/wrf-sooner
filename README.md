@@ -20,20 +20,17 @@ two complete case examples:
 # on sooner.oscer.ou.edu
 git clone https://github.com/<you>/wrf-oscer-sooner.git && cd wrf-oscer-sooner && mkdir -p logs
 
-el9                                            # enter the EL9 module environment
-bash scripts/build/00_check_modules.sh         # pick/verify compiler, MPI, netCDF modules
 bash scripts/build/01_get_source.sh            # clone WRF + WPS
-bash scripts/data/get_geog.sh                  # static data (~29 GB, /scratch)
-bash scripts/data/get_case_data.sh cases/2013-05-20_moore   # NCEP FNL forcing
-exit                                           # leave el9 before submitting
-
-jid=$(sbatch --parsable scripts/build/02_build_wrf.slurm)  # ~30-60 min
+jid=$(sbatch --parsable scripts/build/02_build_wrf.slurm)  # auto-picks + tests modules, then builds (~30-60 min)
 sbatch --dependency=afterok:$jid scripts/build/03_build_wps.slurm
+
+bash scripts/data/get_geog.sh                  # static data (~29 GB, /scratch) — while it compiles
+bash scripts/data/get_case_data.sh cases/2013-05-20_moore   # NCEP FNL forcing
 
 bash scripts/run/submit_case.sh cases/2013-05-20_moore      # WPS -> real -> WRF chain
 ```
 
-> **New here? Read [docs/00_start_here.md](docs/00_start_here.md)**: a 9-step checklist.
+> **New here? Read [docs/00_start_here.md](docs/00_start_here.md)**: an 8-step checklist.
 
 ## Documentation
 0. [Start here](docs/00_start_here.md)

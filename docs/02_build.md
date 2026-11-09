@@ -10,17 +10,18 @@ module -t avail 2>&1 | grep -iE '^(WRF|WPS)/'
 If OSCER provides a recent WRF/WPS module you *can* use it, but building your own makes the
 build reproducible and documentable (the point of this repo), and lets you modify the code later.
 
-## 2.1 Pick a consistent toolchain
-```bash
-el9
-bash scripts/build/00_check_modules.sh
-```
-This lists the available `GCC`, `OpenMPI`, `netCDF`, `netCDF-Fortran`, `JasPer`, `libpng`, `zlib`
-modules and tries to load the set in `env/sooner_wrf.env.sh`. Edit the `MOD_*` lines until it
-prints `OK`. **Rule:** every module must come from the same toolchain generation
-(e.g. all `gompi-2023a` / `GCCcore-12.3.0`).
+## 2.1 Toolchain: chosen automatically
+You don't pick module versions by hand. The first time `02_build_wrf.slurm` runs, it calls
+[`scripts/build/00_setup_modules.sh`](../scripts/build/00_setup_modules.sh), which:
+1. lists every GNU-built `netCDF-Fortran` module (`gompi-*` / `foss-*`), newest first;
+2. loads it, which also loads the matching GCC, OpenMPI, netCDF-C and HDF5;
+3. finds `JasPer` and `libpng` for the same GCC version (needed by WPS);
+4. **compiles and runs a tiny MPI + netCDF Fortran program** to prove the set works;
+5. saves the first set that passes to `env/sooner_modules.sh`, which every later job reuses.
 
-Record the final module list in the README's "Tested configuration" table.
+The chosen versions are written as comments in `env/sooner_modules.sh`. Copy them into the
+README's "Tested configuration" table. To re-pick (for example after an OSCER software update),
+delete that file. You can also run the script yourself on the login node (`el9` first).
 
 ## 2.2 Get the source (login node)
 ```bash
@@ -31,8 +32,7 @@ submodules — a non-recursive clone fails late in the compile).
 
 ## 2.3 Compile (compute nodes)
 ```bash
-exit                      # leave el9 before sbatch
-mkdir -p logs
+mkdir -p logs             # run sbatch OUTSIDE el9 (jobs enter it themselves)
 jid=$(sbatch --parsable scripts/build/02_build_wrf.slurm)
 sbatch --dependency=afterok:$jid scripts/build/03_build_wps.slurm
 ```
