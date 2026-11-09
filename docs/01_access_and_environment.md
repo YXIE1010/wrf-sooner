@@ -20,10 +20,16 @@ All `.slurm` scripts in this repo already include `--container=el9hw`.
 | Path | Purpose | Notes |
 |---|---|---|
 | `~/wrf-oscer-sooner` | this repo (scripts, namelists, docs) | |
-| `~/wrf/WRF-4.7.1`, `~/wrf/WPS-4.7.0` | source + compiled executables (~2–3 GB) | `$HOME` has a ~20 GB quota, backed up nightly |
+| `~/wrf/WRF-4.7.1`, `~/wrf/WPS-4.7.0` | **slim install**: executables + lookup tables only (~0.5 GB) | `$HOME` has a 20 GB quota, backed up nightly |
+| `/scratch/$USER/wrf/build` | WRF/WPS source + compiler output (~3 GB) | only needed while compiling; fine if purged later |
 | `/scratch/$USER/wrf/WPS_GEOG` | static geographic data (~29 GB) | **not backed up; files untouched for 2 weeks are deleted** |
 | `/scratch/$USER/wrf/met` | downloaded GRIB input | re-downloadable |
 | `/scratch/$USER/wrf/runs/<case>` | WPS + WRF run directories, `wrfout_*` | copy results you want to keep! |
+
+**Home quota.** Only the slim install (~0.5 GB) goes in `$HOME`. If home is nearly full, set
+`export WRF_HOME=/ourdisk/hpc/<group>/wrf` (or another persistent location) before building
+and the repo uses no home space at all. Avoid putting the install in `/scratch`: purged
+executables mean a rebuild. Check your usage with `du -sh ~` and `du -sh ~/* | sort -h | tail`.
 
 All paths are set in [`env/sooner_wrf.env.sh`](../env/sooner_wrf.env.sh) and can be overridden
 with environment variables (e.g. `export GEOG_DIR=/ourdisk/hpc/<group>/WPS_GEOG`).

@@ -38,14 +38,24 @@ wrf_load_modules() {
 }
 
 # ---- Directory layout ------------------------------------------------------
-# Code + executables: $HOME (20 GB quota, backed up nightly).
-# Large data + run directories: /scratch (NOT backed up, 2-week auto-delete).
-export WRF_HOME="${WRF_HOME:-$HOME/wrf}"                 # source trees + builds
-export WRF_DIR="$WRF_HOME/WRF-${WRF_VERSION}"
-export WPS_DIR="$WRF_HOME/WPS-${WPS_VERSION}"
-export NETCDF_COMBINED="$WRF_HOME/netcdf-combined"      # merged C+Fortran prefix
-
+# $HOME has a 20 GB quota, so only a SLIM INSTALL lives there (~0.5 GB:
+# executables + lookup tables). The bulky source trees and compiler output
+# (~3 GB) are built in /scratch and can be purged afterwards with no harm.
+# Large data + run directories also live in /scratch (NOT backed up,
+# 2-week auto-delete).
 export WRF_SCRATCH="${WRF_SCRATCH:-/scratch/$USER/wrf}"
+
+# Build area (source + .o files) — scratch, disposable
+export WRF_BUILD_ROOT="${WRF_BUILD_ROOT:-$WRF_SCRATCH/build}"
+export WRF_SRC="$WRF_BUILD_ROOT/WRF-${WRF_VERSION}"
+export WPS_SRC="$WRF_BUILD_ROOT/WPS-${WPS_VERSION}"
+export NETCDF_COMBINED="$WRF_BUILD_ROOT/netcdf-combined"  # merged C+Fortran prefix (symlinks)
+
+# Slim install used by the run scripts — $HOME by default (persistent, backed up).
+# Point WRF_HOME at group storage (e.g. /ourdisk/...) to use no home space at all.
+export WRF_HOME="${WRF_HOME:-$HOME/wrf}"
+export WRF_DIR="$WRF_HOME/WRF-${WRF_VERSION}"   # contains run/ (wrf.exe, real.exe, tables)
+export WPS_DIR="$WRF_HOME/WPS-${WPS_VERSION}"   # contains *.exe, geogrid/, metgrid/, ungrib/Variable_Tables
 export GEOG_DIR="${GEOG_DIR:-$WRF_SCRATCH/WPS_GEOG}"     # ~29 GB high-res static data
 export MET_DIR="${MET_DIR:-$WRF_SCRATCH/met}"            # downloaded GRIB files
 export RUNS_DIR="${RUNS_DIR:-$WRF_SCRATCH/runs}"         # one subdir per case

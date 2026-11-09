@@ -27,7 +27,7 @@ delete that file. You can also run the script yourself on the login node (`el9` 
 ```bash
 bash scripts/build/01_get_source.sh
 ```
-Clones the release tags with `--recurse-submodules` (Noah-MP, MMM physics, MYNN-EDMF are
+Clones into the scratch build area (`/scratch/$USER/wrf/build`), not `$HOME`. Uses `--recurse-submodules` (Noah-MP, MMM physics, MYNN-EDMF are
 submodules — a non-recursive clone fails late in the compile).
 
 ## 2.3 Compile (compute nodes)
@@ -38,14 +38,17 @@ sbatch --dependency=afterok:$jid scripts/build/03_build_wps.slurm
 ```
 
 What the WRF build job does:
-1. **Merges netCDF-C and netCDF-Fortran into one prefix** (`~/wrf/netcdf-combined`, symlinks).
+1. **Merges netCDF-C and netCDF-Fortran into one prefix** (`/scratch/$USER/wrf/build/netcdf-combined`, symlinks).
    WRF's `configure` expects both under `$NETCDF`; EasyBuild installs them separately.
 2. `./configure` with option **34** (GNU dmpar) and nesting **1** (basic).
-3. `./compile -j 8 em_real` → `main/{wrf,real,ndown,tc}.exe`.
+3. `./compile -j 8 em_real` → `main/{wrf,real,ndown,tc}.exe` in the scratch build tree.
+4. **Slim install** to `~/wrf/WRF-4.7.1/run/`: copies only the executables and lookup
+   tables (symlinks resolved, large unused P3 tables skipped). About 0.5 GB instead of ~3 GB,
+   and it keeps working after `/scratch` purges the build tree.
 
-The WPS job configures option **1** (gfortran serial), points `WRF_DIR` at the build above,
+The WPS job configures option **1** (gfortran serial), points `WRF_DIR` at the scratch WRF build tree,
 uses `JASPERLIB/JASPERINC` from the JasPer module, and checks `geogrid.exe`, `ungrib.exe`,
-`metgrid.exe`.
+`metgrid.exe`, then installs the three executables and their tables to `~/wrf/WPS-4.7.0/`.
 
 > Configure menu numbers occasionally change between releases. If the `grep` of
 > `configure.wrf` in the log does not show `gfortran`/`mpif90`, run `./configure` by hand once,
@@ -53,13 +56,14 @@ uses `JASPERLIB/JASPERINC` from the JasPer module, and checks `geogrid.exe`, `un
 
 ## 2.4 Verify
 ```bash
-ls -l ~/wrf/WRF-4.7.1/main/*.exe
+ls -l ~/wrf/WRF-4.7.1/run/*.exe
 ls -l ~/wrf/WPS-4.7.0/*.exe
+du -sh ~/wrf                                             # expect roughly 0.5 GB
 grep -c -i ' error' ~/wrf/WRF-4.7.1/compile_em_real.log   # 0 is ideal; context matters
 ```
 
 ## If netCDF-Fortran is not available as a module
-Ask support@oscer.ou.edu first. Otherwise build it yourself into `~/wrf/libs` against the
+Ask support@oscer.ou.edu first. Otherwise build it yourself into `~/wrf/libs` (~50 MB) against the
 loaded netCDF-C module (`./configure --prefix=$HOME/wrf/libs CC=gcc FC=gfortran`,
 `CPPFLAGS=-I$(nc-config --includedir)`, `LDFLAGS=-L$(nc-config --libdir)`), and point
 `MOD_NETCDF_F` at nothing / add `$HOME/wrf/libs/bin` to `PATH` so `nf-config` resolves.

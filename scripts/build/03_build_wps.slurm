@@ -22,15 +22,15 @@ source "${SLURM_SUBMIT_DIR}/env/sooner_wrf.env.sh"
 wrf_load_modules
 set_grib2_paths
 
-[ -s "$WRF_DIR/main/wrf.exe" ] || { echo "Build WRF first ($WRF_DIR)"; exit 1; }
+# WPS compiles against the WRF *build tree* (its I/O libraries), not the slim install
+[ -s "$WRF_SRC/main/wrf.exe" ] || { echo "Build WRF first ($WRF_SRC)"; exit 1; }
 
-cd "$WPS_DIR"
+cd "$WPS_SRC"
 ./clean -a >/dev/null 2>&1 || true
 # Option 1 = "Linux x86_64, gfortran (serial)". Override with WPS_CONFIG_OPT.
-printf '%s\n' "${WPS_CONFIG_OPT:-1}" | ./configure
+printf '%s\n' "${WPS_CONFIG_OPT:-1}" | WRF_DIR="$WRF_SRC" ./configure
 
-# WPS needs to know where the compiled WRF lives (for its I/O libraries)
-sed -i "s|^WRF_DIR.*|WRF_DIR = ${WRF_DIR}|" configure.wps
+sed -i "s|^WRF_DIR.*|WRF_DIR = ${WRF_SRC}|" configure.wps
 grep -E '^(WRF_DIR|COMPRESSION_LIBS|COMPRESSION_INC|FC )' configure.wps
 
 ./compile > compile_wps.log 2>&1 || true
@@ -45,3 +45,14 @@ if [ "${MISSING:-0}" = 1 ]; then
     exit 1
 fi
 echo "WPS build complete."
+
+# Slim install: executables + the tables run_wps.slurm links to
+rm -rf "$WPS_DIR"; mkdir -p "$WPS_DIR"/{geogrid,metgrid,ungrib}
+cp -L geogrid.exe ungrib.exe metgrid.exe "$WPS_DIR/"
+cp -L geogrid/GEOGRID.TBL* "$WPS_DIR/geogrid/"
+cp -L metgrid/METGRID.TBL* "$WPS_DIR/metgrid/"
+cp -rL ungrib/Variable_Tables "$WPS_DIR/ungrib/"
+cp compile_wps.log configure.wps "$WPS_DIR/"
+echo "Installed to $WPS_DIR: $(du -sh "$WPS_DIR" | cut -f1)"
+echo "Home usage of the WRF install: $(du -sh "$WRF_HOME" | cut -f1)"
+echo "The build trees in $WRF_BUILD_ROOT are no longer needed (safe if scratch purges them)."

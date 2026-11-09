@@ -7,7 +7,7 @@ useful to the next person.
 | Symptom | Likely cause / fix |
 |---|---|
 | `module: command not found` or modules missing | You are not in the EL9 container (`el9`) on the login node, or the job lacks `--container=el9hw`. |
-| `configure` can't find netCDF / `netcdf.inc` | netCDF-Fortran not merged into `$NETCDF`; check `ls ~/wrf/netcdf-combined/include/netcdf.inc`. |
+| `configure` can't find netCDF / `netcdf.inc` | netCDF-Fortran not merged into `$NETCDF`; check `ls /scratch/$USER/wrf/build/netcdf-combined/include/netcdf.inc`. |
 | Thousands of `Type mismatch` errors | gfortran ≥10 without `-fallow-argument-mismatch`; WRF ≥4.2 adds it automatically — make sure you're on 4.7.x and that `configure.wrf` shows gfortran. |
 | `wrf.exe` missing, error mentions `noahmp` / `mmm` / `MYNN` | Source cloned without `--recurse-submodules`: `git submodule update --init --recursive`. |
 | `undefined reference to nf_...` | netCDF-C and netCDF-Fortran from different toolchains. |
@@ -35,3 +35,10 @@ grep -i -l error rsl.error.*            # which rank failed
 tail -n 30 rsl.error.0000
 sacct -j <jobid> --format=JobID,State,Elapsed,MaxRSS,NodeList
 ```
+
+## Storage
+| Symptom | Fix |
+|---|---|
+| `Disk quota exceeded` during a build | Builds go to `/scratch`; only the ~0.5 GB install goes to `$HOME`. Check `du -sh ~/* \| sort -h \| tail`; conda package caches (`conda clean --all`) are a common culprit. Or `export WRF_HOME=/ourdisk/...` before building. |
+| `wrf.exe: No such file` weeks later | Install lives in `$HOME` and survives; if you moved `WRF_HOME` to `/scratch`, it was purged. Rebuild. |
+| WPS build fails: `Build WRF first` | The scratch build tree was purged between the two builds. Re-run `01_get_source.sh` and both builds. |

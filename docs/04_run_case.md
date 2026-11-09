@@ -45,7 +45,7 @@ tail -f /scratch/$USER/wrf/runs/2013-05-20_moore/wrf/rsl.error.0000
 
 ## Plot
 ```bash
-conda activate wrfplot   # one-time: conda env create -f scripts/plot/environment.yml
+conda activate wrfplot   # one-time setup: see "Plotting env and the home quota" below
 RUN=/scratch/$USER/wrf/runs/2013-05-20_moore
 python scripts/plot/plot_domains.py $RUN/wps results/figures/domains.png
 python scripts/plot/plot_reflectivity.py $RUN/wrf results/figures/refl_d02.png --domain d02 \
@@ -62,3 +62,12 @@ Commit the PNGs and `timing_summary.txt` (small), **not** the `wrfout` files (GB
   hours next to the simulation.
 * Sensitivity ideas to add as extra case folders: Thompson vs. Morrison (10) vs. NSSL (17)
   microphysics; 0.25° GDAS forcing (needs a post-2015 case); 1 km third nest.
+
+## Plotting env and the home quota
+A conda env with cartopy takes about 1–2 GB. If your conda lives in `$HOME`, that counts
+against the 20 GB quota. Options, from least to most home space:
+* create it outside home: `conda env create -f scripts/plot/environment.yml -p /ourdisk/hpc/<group>/envs/wrfplot`
+  (then `conda activate /ourdisk/.../wrfplot`);
+* reuse an env you already have: `pip install xarray netCDF4 matplotlib` (cartopy optional;
+  without it the scripts plot on a plain lat/lon grid);
+* `conda clean --all` first. Package caches are often several GB.

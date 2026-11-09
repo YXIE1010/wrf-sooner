@@ -41,7 +41,7 @@ ls "$NETCDF_COMBINED/lib" | grep -E 'libnetcdff?\.' || { echo "netCDF libs missi
 
 # --- 2. Configure. Option 34 = "GNU (gfortran/gcc)  dmpar", nesting 1 = basic.
 #        Menu numbers can shift between versions; override with WRF_CONFIG_OPT.
-cd "$WRF_DIR"
+cd "$WRF_SRC"
 ./clean -a >/dev/null 2>&1 || true
 printf '%s\n%s\n' "${WRF_CONFIG_OPT:-34}" "1" | ./configure
 grep -E '^(SFC|DM_FC|FCOPTIM)' configure.wrf
@@ -57,7 +57,27 @@ for exe in wrf real ndown tc; do
 done
 if [ "${MISSING:-0}" = 1 ]; then
     echo "Build FAILED. Search for the FIRST error:"
-    echo "   grep -n -m5 -i ' error' $WRF_DIR/compile_em_real.log"
+    echo "   grep -n -m5 -i ' error' $WRF_SRC/compile_em_real.log"
     exit 1
 fi
-echo "WRF build complete."
+echo "WRF build complete (build tree: $WRF_SRC, $(du -sh . | cut -f1))."
+
+# --- 4. Slim install: copy ONLY what a run needs (executables + lookup tables)
+#        to $WRF_DIR. cp -L turns run/'s symlinks into real files, so the
+#        install keeps working after /scratch purges the build tree.
+rm -rf "$WRF_DIR"; mkdir -p "$WRF_DIR/run"
+# Skipped: namelist.input (cases provide their own) and the P3 microphysics
+# tables (several hundred MB, unused here; copy them from $WRF_SRC/run if you
+# switch to mp_physics = 50-53). Skipped DURING the copy so they never touch
+# the home quota.
+for f in "$WRF_SRC"/run/*; do
+    case "$(basename "$f")" in namelist.input|p3_lookupTable*) continue ;; esac
+    cp -rL "$f" "$WRF_DIR/run/"
+done
+echo "Largest files kept in the install:"; ls -S -lh "$WRF_DIR/run" | sed -n 2,6p
+cp compile_em_real.log configure.wrf "$WRF_DIR/"  # keep for the record
+echo "Installed to $WRF_DIR: $(du -sh "$WRF_DIR" | cut -f1)"
+if [ "$(du -sm "$WRF_DIR" | cut -f1)" -gt 1500 ]; then
+    echo "WARNING: install is >1.5 GB — check the largest files listed above."
+fi
+ls "$WRF_DIR/run/"*.exe
