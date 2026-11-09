@@ -1,0 +1,17 @@
+# Never commit model data or build products
+logs/
+*.grib2
+*.grb2
+met_em.d0*
+geo_em.d0*
+wrfout_d0*
+wrfinput_d0*
+wrfbdy_d0*
+wrfrst_d0*
+rsl.out.*
+rsl.error.*
+*.exe
+*.o
+*.mod
+__pycache__/
+.DS_Store

@@ -1,0 +1,11 @@
+# Small conda env for post-processing on the login node:
+#   conda env create -f scripts/plot/environment.yml && conda activate wrfplot
+name: wrfplot
+channels: [conda-forge]
+dependencies:
+  - python=3.11
+  - xarray
+  - netcdf4
+  - numpy
+  - matplotlib
+  - cartopy
