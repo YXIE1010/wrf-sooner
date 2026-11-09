@@ -18,7 +18,7 @@ two complete case examples:
 ## Quick start
 ```bash
 # on sooner.oscer.ou.edu
-git clone https://github.com/<you>/wrf-oscer-sooner.git && cd wrf-oscer-sooner && mkdir -p logs
+git clone https://github.com/YXIE1010/wrf-oscer-sooner.git && cd wrf-oscer-sooner && mkdir -p logs
 
 bash scripts/build/01_get_source.sh            # clone WRF + WPS
 jid=$(sbatch --parsable scripts/build/02_build_wrf.slurm)  # auto-picks + tests modules, then builds (~30-60 min)

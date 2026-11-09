@@ -45,7 +45,7 @@ Check current partitions with `sinfo -s` and the OSCER partitions page.
 ## Clone the repo on Sooner
 ```bash
 cd ~
-git clone https://github.com/<you>/wrf-oscer-sooner.git
+git clone https://github.com/YXIE1010/wrf-oscer-sooner.git
 cd wrf-oscer-sooner
 mkdir -p logs
 ```
