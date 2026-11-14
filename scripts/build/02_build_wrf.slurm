@@ -8,7 +8,7 @@
 # Success = main/wrf.exe, real.exe, ndown.exe, tc.exe all exist.
 # =============================================================================
 #SBATCH --job-name=build_wrf
-#SBATCH --partition=sooner_test
+#SBATCH --partition=ai2es
 #SBATCH --container=el9hw
 #SBATCH --nodes=1
 #SBATCH --ntasks=8

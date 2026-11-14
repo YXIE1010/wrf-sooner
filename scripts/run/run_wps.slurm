@@ -5,7 +5,7 @@
 # (normally called by scripts/run/submit_case.sh)
 # =============================================================================
 #SBATCH --job-name=wps
-#SBATCH --partition=sooner_test
+#SBATCH --partition=ai2es
 #SBATCH --container=el9hw
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

@@ -1,0 +1,2 @@
+domain 1: 576 steps, mean 1.667 s/step, total 16.0 min
+domain 2: 2880 steps, mean 0.264 s/step, total 12.7 min

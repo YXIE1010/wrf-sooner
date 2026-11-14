@@ -8,7 +8,7 @@
 # Serial WPS is plenty for regional domains; geogrid/metgrid run in minutes.
 # =============================================================================
 #SBATCH --job-name=build_wps
-#SBATCH --partition=sooner_test
+#SBATCH --partition=ai2es
 #SBATCH --container=el9hw
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -27,6 +27,25 @@ set_grib2_paths
 
 cd "$WPS_SRC"
 ./clean -a >/dev/null 2>&1 || true
+
+# --- added to fix the build issue --- #
+# JasPer >= 3 (Sooner: 4.2.8): jpc_decode/jpc_encode are no longer exported, and
+# JasPer must be initialised before ANY jas_* call. Restore the original files,
+# then: init JasPer once before the first jas_stream_memopen, and use the public
+# jas_image_decode/encode API. Safe to run repeatedly.
+G2DIR=ungrib/src/ngl/g2
+git checkout -- "$G2DIR/dec_jpeg2000.c" "$G2DIR/enc_jpeg2000.c"
+perl -0pi -e '
+  s{(#include\s*[<"]jasper/jasper\.h[>"][^\n]*\n)}{$1/* WPS on Sooner: JasPer >= 3 needs a one-time init */\nstatic void wps_jas_init_once(void) { static int done = 0; if (!done) { jas_init(); done = 1; } }\n};
+  s{^([ \t]*)(\w+\s*=\s*jas_stream_memopen\s*\()}{$1wps_jas_init_once();\n$1$2}m;
+  s{\bjpc_decode\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)}{jas_image_decode($1, jas_image_strtofmt("jpc"), $2)}g;
+' "$G2DIR/dec_jpeg2000.c"
+perl -0pi -e 's{\bjpc_encode\s*\(\s*(&?\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*\)}{jas_image_encode($1, $2, jas_image_strtofmt("jpc"), $3)}g' "$G2DIR/enc_jpeg2000.c"
+if grep -n -E '\bjpc_(de|en)code\s*\(' "$G2DIR"/*.c || [ "$(grep -c 'wps_jas_init_once' "$G2DIR/dec_jpeg2000.c")" != 2 ]; then
+    echo "ERROR: JasPer patch did not apply cleanly to $G2DIR" >&2; exit 1
+fi
+echo "JasPer API patch applied to $G2DIR"
+
 # Option 1 = "Linux x86_64, gfortran (serial)". Override with WPS_CONFIG_OPT.
 printf '%s\n' "${WPS_CONFIG_OPT:-1}" | WRF_DIR="$WRF_SRC" ./configure
 

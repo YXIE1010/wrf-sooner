@@ -4,10 +4,9 @@
 # submit_case.sh from case.conf (WRF_NODES, WRF_TASKS_PER_NODE, WRF_WALLTIME).
 # =============================================================================
 #SBATCH --job-name=wrf
-#SBATCH --partition=sooner_test
+#SBATCH --partition=ai2es
 #SBATCH --container=el9hw
-#SBATCH --exclusive
-#SBATCH --mem=0
+#SBATCH --mem=40G
 #SBATCH --output=logs/wrf_%j.out
 #SBATCH --error=logs/wrf_%j.out
 
@@ -23,6 +22,7 @@ rm -f rsl.* wrfout_d0*
 echo "Start $(date)  tasks=$SLURM_NTASKS nodes=$SLURM_JOB_NUM_NODES"
 SECONDS=0
 mpirun -np "$SLURM_NTASKS" ./wrf.exe
+#srun --mpi=pmix ./wrf.exe
 echo "End   $(date)  elapsed=$((SECONDS/60)) min"
 
 tail -n 3 rsl.error.0000

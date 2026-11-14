@@ -6,7 +6,7 @@
 # so the same namelist works for FNL, GFS, ERA5, ... without hand-editing.
 # =============================================================================
 #SBATCH --job-name=real
-#SBATCH --partition=sooner_test
+#SBATCH --partition=ai2es
 #SBATCH --container=el9hw
 #SBATCH --nodes=1
 #SBATCH --ntasks=8
