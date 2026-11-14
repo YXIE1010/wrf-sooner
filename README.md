@@ -9,12 +9,6 @@ two complete case examples:
 * **9–11 Jan 2023 California atmospheric river**: temperature and precipitation over the
   Sierra Nevada (4 km), showing orographic enhancement and the snow line
 
-<p align="center">
-  <img src="results/figures/refl_d02.png" width="720"
-       alt="Simulated composite reflectivity, 3 km nest, 19–22 UTC 20 May 2013">
-  <br><em>Simulated composite reflectivity on the 3 km nest (★ = Moore, OK).</em>
-</p>
-
 ## Quick start
 ```bash
 bash scripts/build/01_get_source.sh            # clone WRF + WPS
@@ -60,6 +54,12 @@ results/                       figures + timing summary committed after the run
 
 ## Case summaries
 **Case 1: Moore supercells**
+
+<p align="center">
+  <img src="results/figures/refl_d02.png" width="720"
+       alt="Simulated composite reflectivity, 3 km nest, 19–22 UTC 20 May 2013">
+  <br><em>Simulated composite reflectivity on the 3 km nest (★ = Moore, OK).</em>
+</p>
 
 | | d01 | d02 |
 |---|---|---|
