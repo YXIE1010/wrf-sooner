@@ -17,9 +17,6 @@ two complete case examples:
 
 ## Quick start
 ```bash
-# on sooner.oscer.ou.edu
-git clone https://github.com/YXIE1010/wrf-oscer-sooner.git && cd wrf-oscer-sooner && mkdir -p logs
-
 bash scripts/build/01_get_source.sh            # clone WRF + WPS
 jid=$(sbatch --parsable scripts/build/02_build_wrf.slurm)  # auto-picks + tests modules, then builds (~30-60 min)
 sbatch --dependency=afterok:$jid scripts/build/03_build_wps.slurm
@@ -30,7 +27,7 @@ bash scripts/data/get_case_data.sh cases/2013-05-20_moore   # NCEP FNL forcing
 bash scripts/run/submit_case.sh cases/2013-05-20_moore      # WPS -> real -> WRF chain
 ```
 
-> **New here? Read [docs/00_start_here.md](docs/00_start_here.md)**: an 8-step checklist.
+> **[docs/00_start_here.md](docs/00_start_here.md)**: an 8-step checklist.
 
 ## Documentation
 0. [Start here](docs/00_start_here.md)
@@ -85,18 +82,6 @@ Thompson MP · RRTMG · YSU · Noah · FNL 1° IC/BC.
 | Period | 2023-01-09 00 UTC – 01-11 00 UTC (48 h) | same |
 
 Thompson · RRTMG · YSU · Noah-MP · slope/shading radiation · FNL 1°.
-
-## Tested configuration
-*Fill in after your first successful run — this is what makes it reproducible.*
-
-| Item | Value |
-|---|---|
-| System | OSCER Sooner, EL9 (`el9hw` container) |
-| Compiler / MPI | GCC x.y.z / OpenMPI x.y.z |
-| netCDF-C / netCDF-Fortran | x.y.z / x.y.z |
-| WRF / WPS | v4.7.1 / v4.7.0 |
-| wrf.exe resources | 2 nodes × 20 MPI tasks |
-| Wall time (12 h forecast) | see [`results/timing_summary.txt`](results/) |
 
 ## Data & software credits
 * WRF/WPS: Skamarock et al. (2021), *A Description of the Advanced Research WRF Model
